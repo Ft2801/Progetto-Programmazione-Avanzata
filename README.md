@@ -22,11 +22,11 @@ Backend per la gestione della compravendita di energia locale tra produttori e c
 ```bash
 docker compose up -d --build
 ```
-3. (Opzionale) Seed dati demo:
+3. (Opzionale) Seed dati demo (prima avviare il database: `docker compose up -d db`):
 ```bash
 npm run build && npm run seed
 ```
-4. Avvio API localmente (senza Docker):
+4. Avvio API localmente (senza Docker) — assicurarsi che il database sia avviato (`docker compose up -d db`):
 ```bash
 npm run build && node dist/server.js
 ```
@@ -90,6 +90,21 @@ Tutte le rotte (tranne `/api/auth/*` e `/health`) richiedono JWT nel header `Aut
 L’endpoint immagine usa Puppeteer per renderizzare Plotly in headless Chrome e restituisce PNG.
 
 ## Test (Postman)
+Per eseguire i test della collection:
+```bash
+# Avviare il database (necessario in entrambi i casi)
+docker compose up -d db
+
+# Opzione A: API in Docker (consigliata per test rapidi)
+docker compose up -d --build
+npm run newman
+
+# Opzione B: API in locale (in un altro terminale)
+npm run build && node dist/server.js
+# quindi, in questo terminale, eseguire i test
+npm run newman
+```
+
 Forniremo una collection con:
 - Register/Login
 - Producer: profile, capacities, prices, occupancy, earnings, proportional-accept

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+// Middleware di autenticazione JWT: valida il token Bearer e popola req.user
 export function authenticate(req, res, next) {
     const header = req.headers.authorization;
     if (!header || !header.startsWith('Bearer ')) {
@@ -19,6 +20,7 @@ export function authenticate(req, res, next) {
         return res.status(401).json({ error: 'Invalid token' });
     }
 }
+// Autorizzazione basata su ruolo: consente l'accesso solo ai ruoli specificati
 export function requireRole(roles) {
     return (req, res, next) => {
         if (!req.user)

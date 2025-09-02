@@ -2,8 +2,10 @@ import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../shared/db.js';
 import { User } from './User.js';
 import { Producer } from './Producer.js';
+// Modello Sequelize per le prenotazioni
 export class Reservation extends Model {
 }
+// Definizione dei campi e delle regole di validazione
 Reservation.init({
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     consumerId: { type: DataTypes.INTEGER, allowNull: false },
@@ -14,6 +16,7 @@ Reservation.init({
     unitPrice: { type: DataTypes.DECIMAL(10, 4), allowNull: false },
     status: { type: DataTypes.ENUM('reserved', 'cancelled', 'confirmed'), allowNull: false, defaultValue: 'reserved' },
 }, { sequelize, tableName: 'reservations', modelName: 'Reservation', timestamps: true, underscored: true });
+// Associazioni con User e Producer
 User.hasMany(Reservation, { foreignKey: 'consumerId', as: 'reservations' });
 Reservation.belongsTo(User, { foreignKey: 'consumerId', as: 'consumer' });
 Producer.hasMany(Reservation, { foreignKey: 'producerId', as: 'reservations' });

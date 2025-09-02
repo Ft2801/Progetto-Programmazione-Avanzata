@@ -1,7 +1,9 @@
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../shared/db.js';
+// Modello Sequelize per gli utenti
 export class User extends Model {
 }
+// Definizione campi, validazioni e opzioni di mapping
 User.init({
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     email: { type: DataTypes.STRING(255), allowNull: false, unique: true, validate: { isEmail: true } },
