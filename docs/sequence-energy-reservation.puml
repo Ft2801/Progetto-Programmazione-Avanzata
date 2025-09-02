@@ -1,0 +1,125 @@
+@startuml Energy Reservation Sequence Diagram
+
+!theme plain
+skinparam sequence {
+    ArrowColor DarkBlue
+    ActorBorderColor DarkBlue
+    LifeLineBorderColor DarkBlue
+    ParticipantBorderColor DarkBlue
+    ParticipantBackgroundColor LightBlue
+}
+
+title Prenotazione Energia - Diagramma delle Sequenze
+
+actor "Consumer" as C
+participant "ConsumerController" as CC
+participant "Producer Model" as PM
+participant "ProducerCapacity Model" as PCM
+participant "Reservation Model" as RM
+participant "User Model" as UM
+participant "Database" as DB
+
+C -> CC: POST /api/consumer/reserve\n{producerId, date, hour, kwh}
+activate CC
+
+CC -> CC: Validazione input
+note right: express-validator\n- producerId > 0\n- date formato ISO\n- hour 0-23\n- kwh >= 0.1
+
+CC -> CC: Controllo cutoff 24h
+note right: slotTime.diff(now, 'hour') > 24\nPrenotazioni solo fino a 24h prima
+
+CC -> PM: findByPk(producerId)
+activate PM
+PM -> DB: SELECT * FROM producers WHERE id = ?
+activate DB
+DB --> PM: producer data
+deactivate DB
+PM --> CC: producer (o null)
+deactivate PM
+
+alt Producer non trovato
+    CC --> C: 404 Not Found\n{error: "Producer not found"}
+else Producer trovato
+    CC -> PCM: findOne({producerId, date, hour})
+    activate PCM
+    PCM -> DB: SELECT * FROM producer_capacities\nWHERE producer_id = ? AND date = ? AND hour = ?
+    activate DB
+    DB --> PCM: capacity data
+    deactivate DB
+    PCM --> CC: capacity (o null)
+    deactivate PCM
+    
+    alt Capacità non impostata
+        CC --> C: 400 Bad Request\n{error: "No capacity set for that slot"}
+    else Capacità disponibile
+        CC -> RM: findAll({producerId, date, hour, status: 'reserved'})
+        activate RM
+        RM -> DB: SELECT * FROM reservations\nWHERE producer_id = ? AND date = ? AND hour = ? AND status = 'reserved'
+        activate DB
+        DB --> RM: existing reservations
+        deactivate DB
+        RM --> CC: existing reservations
+        deactivate RM
+        
+        CC -> CC: Calcolo somma richieste esistenti
+        note right: existingSum = existing.reduce((s, r) => s + r.kwh, 0)
+        
+        alt Capacità superata
+            CC --> C: 400 Bad Request\n{error: "Capacity exceeded"}
+        else Capacità sufficiente
+            CC -> RM: findOne({consumerId, date, hour, status: 'reserved'})
+            activate RM
+            RM -> DB: SELECT * FROM reservations\nWHERE consumer_id = ? AND date = ? AND hour = ? AND status = 'reserved'
+            activate DB
+            DB --> RM: existing consumer reservation
+            deactivate DB
+            RM --> CC: existing consumer reservation
+            deactivate RM
+            
+            alt Consumatore ha già prenotazione per quell'ora
+                CC --> C: 400 Bad Request\n{error: "Only one producer per hour per consumer"}
+            else Prenotazione possibile
+                CC -> CC: Calcolo costo e verifica credito
+                note right: unitPrice = capacity.pricePerKwh\ncost = unitPrice * kwh
+                
+                CC -> UM: findByPk(consumerId)
+                activate UM
+                UM -> DB: SELECT * FROM users WHERE id = ?
+                activate DB
+                DB --> UM: consumer data
+                deactivate DB
+                UM --> CC: consumer
+                deactivate UM
+                
+                alt Credito insufficiente
+                    CC --> C: 400 Bad Request\n{error: "Insufficient credit"}
+                else Credito sufficiente
+                    CC -> UM: update({credit: newCredit})
+                    activate UM
+                    UM -> DB: UPDATE users SET credit = ? WHERE id = ?
+                    activate DB
+                    DB --> UM: update result
+                    deactivate DB
+                    UM --> CC: credit updated
+                    deactivate UM
+                    
+                    CC -> RM: create({consumerId, producerId, date, hour, kwh, unitPrice, status: 'reserved'})
+                    activate RM
+                    RM -> DB: INSERT INTO reservations VALUES (...)
+                    activate DB
+                    DB --> RM: reservation.id
+                    deactivate DB
+                    RM --> CC: new reservation
+                    deactivate RM
+                    
+                    CC --> C: 201 Created\n{id: reservation.id}
+                end
+            end
+        end
+    end
+end
+
+deactivate CC
+
+@enduml
+

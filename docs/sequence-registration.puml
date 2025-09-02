@@ -1,0 +1,58 @@
+@startuml Registration Sequence Diagram
+
+!theme plain
+skinparam sequence {
+    ArrowColor DarkBlue
+    ActorBorderColor DarkBlue
+    LifeLineBorderColor DarkBlue
+    ParticipantBorderColor DarkBlue
+    ParticipantBackgroundColor LightBlue
+}
+
+title Registrazione Utente - Diagramma delle Sequenze
+
+actor "Utente" as U
+participant "AuthController" as AC
+participant "User Model" as UM
+participant "Database" as DB
+
+U -> AC: POST /api/auth/register\n{email, password, name, role}
+activate AC
+
+AC -> AC: Validazione input
+note right: express-validator\n- email valido\n- password min 6 char\n- name non vuoto\n- role in [producer, consumer]
+
+AC -> UM: findOne({where: {email}})
+activate UM
+UM -> DB: SELECT * FROM users WHERE email = ?
+activate DB
+DB --> UM: risultato query
+deactivate DB
+UM --> AC: existing user (null se nuovo)
+deactivate UM
+
+alt Utente già registrato
+    AC --> U: 409 Conflict\n{error: "Email already registered"}
+else Utente nuovo
+    AC -> AC: bcrypt.hash(password, 10)
+    note right: Hash della password\ncon salt rounds = 10
+    
+    AC -> AC: credit = role === 'consumer' ? 1000 : 0
+    note right: Credito iniziale\n- Consumer: 1000\n- Producer: 0
+    
+    AC -> UM: create({email, passwordHash, name, role, credit})
+    activate UM
+    UM -> DB: INSERT INTO users VALUES (...)
+    activate DB
+    DB --> UM: user.id
+    deactivate DB
+    UM --> AC: nuovo utente creato
+    deactivate UM
+    
+    AC --> U: 201 Created\n{id: user.id}
+end
+
+deactivate AC
+
+@enduml
+

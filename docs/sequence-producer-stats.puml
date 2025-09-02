@@ -1,0 +1,105 @@
+@startuml Producer Statistics Sequence Diagram
+
+!theme plain
+skinparam sequence {
+    ArrowColor DarkBlue
+    ActorBorderColor DarkBlue
+    LifeLineBorderColor DarkBlue
+    ParticipantBorderColor DarkBlue
+    ParticipantBackgroundColor LightBlue
+}
+
+title Statistiche Produttore - Diagramma delle Sequenze
+
+actor "Producer" as P
+participant "StatsController" as SC
+participant "Producer Model" as PM
+participant "ProducerCapacity Model" as PCM
+participant "Reservation Model" as RM
+participant "Puppeteer" as PU
+participant "Database" as DB
+
+P -> SC: GET /api/stats/producer\n?range=START|END&format=json|image|html
+activate SC
+
+SC -> SC: Validazione input
+note right: express-validator\n- range formato START|END\n- format in [json, image, html]
+
+SC -> PM: findOne({where: {userId}})
+activate PM
+PM -> DB: SELECT * FROM producers WHERE user_id = ?
+activate DB
+DB --> PM: producer data
+deactivate DB
+PM --> SC: producer (o null)
+deactivate PM
+
+alt Producer non trovato
+    SC --> P: 400 Bad Request\n{error: "Producer profile not found"}
+else Producer trovato
+    SC -> SC: Parsing range dates
+    note right: [start, end] = range.split('|')\nstartStr = dayjs(start).format('YYYY-MM-DD')
+    
+    SC -> PCM: findAll({where: {producerId}})
+    activate PCM
+    PCM -> DB: SELECT * FROM producer_capacities\nWHERE producer_id = ?
+    activate DB
+    DB --> PCM: all capacities
+    deactivate DB
+    PCM --> SC: capacities array
+    deactivate PCM
+    
+    SC -> RM: findAll({where: {producerId, status: 'reserved'}})
+    activate RM
+    RM -> DB: SELECT * FROM reservations\nWHERE producer_id = ? AND status = 'reserved'
+    activate DB
+    DB --> RM: all reservations
+    deactivate DB
+    RM --> SC: reservations array
+    deactivate RM
+    
+    SC -> SC: Calcolo statistiche per ora (0-23)
+    note right: Per ogni ora:\n- Filtra capacità e prenotazioni\n- Calcola % vendita per giorno\n- Min, Max, Media, Dev. Standard
+    
+    loop Per ogni ora (0-23)
+        SC -> SC: Calcolo percentuali vendita
+        note right: pct = (resKwh / capKwh) * 100\nper ogni giorno nell'intervallo
+        
+        SC -> SC: Statistiche aggregate
+        note right: min = Math.min(...pct)\nmax = Math.max(...pct)\navg = pct.reduce((a,b) => a+b, 0) / pct.length\nstd = Math.sqrt(pct.reduce((s,v) => s + Math.pow(v-avg,2), 0) / pct.length)
+    end
+    
+    alt format === 'json'
+        SC --> P: 200 OK\napplication/json\nstats array
+    else format === 'html'
+        SC -> SC: Generazione HTML con Plotly
+        note right: HTML self-contained con:\n- Plotly.js CDN\n- Dati statistiche\n- Grafico scatter plot
+        
+        SC --> P: 200 OK\ntext/html\nHTML page
+    else format === 'image'
+        SC -> PU: launch({args: ['--no-sandbox']})
+        activate PU
+        
+        SC -> PU: newPage()
+        PU --> SC: page object
+        
+        SC -> PU: setContent(html)
+        note right: HTML con Plotly chart\nwaitUntil: 'networkidle0'
+        
+        SC -> PU: waitForFunction('document.getElementById("chart").children.length > 0')
+        PU --> SC: chart ready
+        
+        SC -> PU: screenshot({type: 'png'})
+        PU --> SC: PNG buffer
+        
+        SC -> PU: close()
+        deactivate PU
+        
+        SC --> P: 200 OK\nimage/png\nPNG image
+    end
+end
+
+deactivate SC
+
+@enduml
+
