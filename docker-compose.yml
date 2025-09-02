@@ -24,7 +24,7 @@ services:
       DB_NAME: energydb
       DB_USER: energy
       DB_PASS: energy
-      JWT_SECRET: please_change_me
+      JWT_SECRET: cambiare
     depends_on:
       db:
         condition: service_healthy
