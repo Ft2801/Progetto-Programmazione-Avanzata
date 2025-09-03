@@ -41,12 +41,12 @@ export async function login(req: Request, res: Response) {
   // Confronta password plaintext con hash salvato
   const ok = await bcrypt.compare(password, user.passwordHash);
   if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
-  // Genera JWT con payload minimo necessario e scadenza
-  const token = jwt.sign(
-    { sub: user.id, role: user.role, name: user.name, email: user.email },
-    process.env.JWT_SECRET || 'please_change_me',
-    { expiresIn: '2d' }
-  );
+  // Genera JWT minimale (solo sub e role) con scadenza
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    return res.status(500).json({ error: 'Server misconfiguration: JWT secret not set' });
+  }
+  const token = jwt.sign({ sub: user.id, role: user.role }, secret, { expiresIn: '2d' });
   return res.json({ token });
 }
 

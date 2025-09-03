@@ -27,13 +27,21 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
   }
   const token = header.substring('Bearer '.length);
   try {
-    const secret = process.env.JWT_SECRET || 'please_change_me';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ error: 'Server misconfiguration: JWT secret not set' });
+    }
     const decoded = jwt.verify(token, secret);
-    const maybe = decoded as Partial<JwtPayload>;
-    if (!maybe || typeof maybe !== 'object' || typeof maybe.sub !== 'number' || !maybe.role) {
+    const maybe = decoded as Partial<JwtPayload> & { sub?: number | string };
+    if (!maybe || typeof maybe !== 'object' || maybe.sub == null || !maybe.role) {
       return res.status(401).json({ error: 'Invalid token payload' });
     }
-    req.user = { sub: maybe.sub, role: maybe.role, name: maybe.name, email: maybe.email } as JwtPayload;
+    // Accetta sub come numero o stringa numerica
+    const subNumber = typeof maybe.sub === 'number' ? maybe.sub : (/^\d+$/.test(String(maybe.sub)) ? Number(maybe.sub) : NaN);
+    if (!Number.isFinite(subNumber)) {
+      return res.status(401).json({ error: 'Invalid token subject' });
+    }
+    req.user = { sub: subNumber, role: maybe.role, name: maybe.name, email: maybe.email } as JwtPayload;
     return next();
   } catch {
     return res.status(401).json({ error: 'Invalid token' });

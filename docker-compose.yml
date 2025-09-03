@@ -24,7 +24,7 @@ services:
       DB_NAME: energydb
       DB_USER: energy
       DB_PASS: energy
-      JWT_SECRET: cambiare
+      JWT_SECRET: 3b75fbfddbe2695c4ddc7f494ac2d4dfc7b8355a5e62398dd7aab4f54acf0045
     depends_on:
       db:
         condition: service_healthy
