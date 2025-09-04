@@ -7,7 +7,6 @@ export async function registerValidation(req: Request, res: Response, next: Next
   for (const rule of registerRules) {
     // Esegue le regole SEQUENZIALMENTE per rispettare eventuali dipendenze d'ordine
     // (anche se nel registro non ci sono dipendenze, manteniamo coerenza)
-    // eslint-disable-next-line no-await-in-loop
     await rule.run(req);
   }
   const errors = validationResult(req);
@@ -19,7 +18,6 @@ export async function loginValidation(req: Request, res: Response, next: NextFun
   // Importante: eseguire in sequenza, perché il validator della password
   // dipende da `foundUser` impostato dal validator dell'email
   for (const rule of loginRules) {
-    // eslint-disable-next-line no-await-in-loop
     await rule.run(req);
   }
   const errors = validationResult(req);
