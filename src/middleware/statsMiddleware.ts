@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { statsRules } from "../validation/statsRules.js";
+import { statsRules } from "../rules/statsRules.js";
 import { validate } from "./validate.js";
 
 /**

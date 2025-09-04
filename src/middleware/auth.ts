@@ -58,4 +58,10 @@ export function requireRole(roles: Array<JwtPayload['role']>) {
   };
 }
 
+// Combinazione di autenticazione + autorizzazione per ruoli
+export function authWithRoles(roles: Array<JwtPayload['role']>) {
+  return [authenticate, requireRole(roles)];
+}
+
+
 

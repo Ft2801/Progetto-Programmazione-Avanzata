@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { reserveRules, modifyRules, purchasesRules, carbonRules } from "../validation/consumerRules.js";
+import { reserveRules, modifyRules, purchasesRules, carbonRules } from "../rules/consumerRules.js";
 import { validate } from "./validate.js";
 
 /** Middleware per la validazione della prenotazione */

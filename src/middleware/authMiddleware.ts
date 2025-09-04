@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { registerRules, loginRules } from "../validation/authRules.js";
+import { registerRules, loginRules } from "../rules/authRules.js";
 import { validate } from "./validate.js";
 
 /**

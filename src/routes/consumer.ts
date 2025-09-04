@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authWithRoles } from '../middleware/auth.js';
 import * as consumerController from '../controllers/consumerController.js';
 import { 
   reserveValidation, 
@@ -15,8 +15,7 @@ const router = Router();
 // vincolo: un solo produttore per ora per consumatore
 router.post(
   '/reserve',
-  authenticate,
-  requireRole(['consumer', 'admin']),
+  authWithRoles(['consumer', 'admin']),
   reserveValidation,
   consumerController.reserve
 );
@@ -24,8 +23,7 @@ router.post(
 // Modifica prenotazione (inclusa cancellazione con kwh=0). Rimborso se >24h prima.
 router.post(
   '/modify',
-  authenticate,
-  requireRole(['consumer', 'admin']),
+  authWithRoles(['consumer', 'admin']),
   modifyValidation,
   consumerController.modify
 );
@@ -33,8 +31,7 @@ router.post(
 // Elenco acquisti con filtri
 router.get(
   '/purchases',
-  authenticate,
-  requireRole(['consumer', 'admin']),
+  authWithRoles(['consumer', 'admin']),
   purchasesValidation,
   consumerController.purchases
 );
@@ -42,8 +39,7 @@ router.get(
 // Calcolo dell'impronta di carbonio in un intervallo di tempo
 router.get(
   '/carbon',
-  authenticate,
-  requireRole(['consumer', 'admin']),
+  authWithRoles(['consumer', 'admin']),
   carbonValidation,
   consumerController.carbon
 );

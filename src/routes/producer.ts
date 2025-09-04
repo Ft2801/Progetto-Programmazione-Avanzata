@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, requireRole } from '../middleware/auth.js';
+import { authWithRoles } from '../middleware/auth.js';
 import * as producerController from '../controllers/producerController.js';
 import {
   upsertProfileValidation,
@@ -16,8 +16,7 @@ const router = Router();
 // Crea o aggiorna il profilo del produttore
 router.post(
   '/profile',
-  authenticate,
-  requireRole(['producer', 'admin']),
+  authWithRoles(['producer', 'admin']),
   upsertProfileValidation,
   producerController.upsertProfile
 );
@@ -25,8 +24,7 @@ router.post(
 // Imposta/aggiorna capacità per uno o più slot orari in una data
 router.post(
   '/capacities',
-  authenticate,
-  requireRole(['producer', 'admin']),
+  authWithRoles(['producer', 'admin']),
   upsertCapacitiesValidation,
   producerController.upsertCapacities
 );
@@ -34,8 +32,7 @@ router.post(
 // Occupazione per un produttore in un intervallo orario per una certa data
 router.get(
   '/occupancy',
-  authenticate,
-  requireRole(['producer', 'admin']),
+  authWithRoles(['producer', 'admin']),
   occupancyValidation,
   producerController.occupancy
 );
@@ -43,8 +40,7 @@ router.get(
 // Aggiorna i prezzi per uno o più slot orari in una data
 router.post(
   '/prices',
-  authenticate,
-  requireRole(['producer', 'admin']),
+  authWithRoles(['producer', 'admin']),
   updatePricesValidation,
   producerController.updatePrices
 );
@@ -52,8 +48,7 @@ router.post(
 // Ricavi totali in un intervallo di date
 router.get(
   '/earnings',
-  authenticate,
-  requireRole(['producer', 'admin']),
+  authWithRoles(['producer', 'admin']),
   earningsValidation,
   producerController.earnings
 );
@@ -61,8 +56,7 @@ router.get(
 // Taglio proporzionale in caso di overbooking: riduce le quantità e rimborsa l'eccesso
 router.post(
   '/proportional-accept',
-  authenticate,
-  requireRole(['producer', 'admin']),
+  authWithRoles(['producer', 'admin']),
   proportionalAcceptValidation,
   producerController.proportionalAccept
 );

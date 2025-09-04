@@ -6,7 +6,7 @@ import {
   updatePricesRules,
   earningsRules,
   proportionalAcceptRules,
-} from "../validation/producerRules.js";
+} from "../rules/producerRules.js";
 import { validate } from "./validate.js";
 
 /**
