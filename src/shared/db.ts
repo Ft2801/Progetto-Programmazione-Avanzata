@@ -7,12 +7,20 @@ const dbPass = process.env.DB_PASS || 'energy';
 const dbHost = process.env.DB_HOST || 'localhost';
 const dbPort = process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432;
 
-// Istanza Sequelize condivisa per l'applicazione (dialetto Postgres)
-export const sequelize = new Sequelize(dbName, dbUser, dbPass, {
-  host: dbHost,
-  port: dbPort,
-  dialect: 'postgres',
-  logging: false,
-});
+// Singleton dell'istanza Sequelize (utile in dev/hot-reload)
+const globalForSequelize = globalThis as unknown as { __sequelize?: Sequelize };
+
+export const sequelize: Sequelize =
+  globalForSequelize.__sequelize ||
+  new Sequelize(dbName, dbUser, dbPass, {
+    host: dbHost,
+    port: dbPort,
+    dialect: 'postgres',
+    logging: false,
+  });
+
+if (!globalForSequelize.__sequelize) {
+  globalForSequelize.__sequelize = sequelize;
+}
 
 
