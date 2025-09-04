@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from "express";
-import { validationResult } from "express-validator";
 import {
   upsertProfileRules,
   upsertCapacitiesRules,
@@ -8,7 +7,6 @@ import {
   earningsRules,
   proportionalAcceptRules,
 } from "../validation/producerRules.js";
-import { StatusCodes } from 'http-status-codes';
 import { validate } from "./validate.js";
 
 /**

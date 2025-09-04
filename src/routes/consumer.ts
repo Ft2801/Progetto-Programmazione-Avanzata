@@ -2,6 +2,12 @@ import { Router } from 'express';
 import { body, query } from 'express-validator';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import * as consumerController from '../controllers/consumerController.js';
+import { 
+  reserveValidation, 
+  modifyValidation, 
+  purchasesValidation, 
+  carbonValidation 
+} from '../middleware/consumerMiddleware.js';
 
 // Rotte lato consumer: prenotazioni, modifica/cancellazione, storico ed emissioni
 const router = Router();
@@ -12,10 +18,7 @@ router.post(
   '/reserve',
   authenticate,
   requireRole(['consumer', 'admin']),
-  body('producerId').isInt({ min: 1 }),
-  body('date').isISO8601(),
-  body('hour').isInt({ min: 0, max: 23 }),
-  body('kwh').isFloat({ min: 0.1 }),
+  reserveValidation,
   consumerController.reserve
 );
 
@@ -24,8 +27,7 @@ router.post(
   '/modify',
   authenticate,
   requireRole(['consumer', 'admin']),
-  body('reservationId').isInt({ min: 1 }),
-  body('kwh').isFloat({ min: 0 }),
+  modifyValidation,
   consumerController.modify
 );
 
@@ -34,9 +36,7 @@ router.get(
   '/purchases',
   authenticate,
   requireRole(['consumer', 'admin']),
-  query('producerId').optional().isInt({ min: 1 }),
-  query('energyType').optional().isIn(['Fossile', 'Eolico', 'Fotovoltaico']),
-  query('range').optional().isString(),
+  purchasesValidation,
   consumerController.purchases
 );
 
@@ -45,7 +45,7 @@ router.get(
   '/carbon',
   authenticate,
   requireRole(['consumer', 'admin']),
-  query('range').isString(),
+  carbonValidation,
   consumerController.carbon
 );
 

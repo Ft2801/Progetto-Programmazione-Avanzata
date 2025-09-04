@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { validationResult } from 'express-validator';
 import { User } from '../models/User.js';
 import { Producer } from '../models/Producer.js';
 import { ProducerCapacity } from '../models/ProducerCapacity.js';
@@ -10,9 +9,6 @@ import { Op } from 'sequelize';
 
 // Prenota uno slot orario per il giorno successivo
 export async function reserve(req: Request, res: Response) {
-  // Convalida input della richiesta
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Identità del consumer dall'auth middleware
   const consumerId = req.user!.sub;
   // Parametri principali della prenotazione
@@ -51,9 +47,6 @@ export async function reserve(req: Request, res: Response) {
 
 // Modifica prenotazione o cancella (kwh=0)
 export async function modify(req: Request, res: Response) {
-  // Convalida input della richiesta
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Recupera prenotazione e verifica proprietà del consumer
   const consumerId = req.user!.sub;
   const reservation = await Reservation.findByPk(Number(req.body.reservationId));
