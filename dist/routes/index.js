@@ -6,6 +6,7 @@ import consumerRoutes from './consumer.js';
 import statsRoutes from './stats.js';
 import { Router } from 'express';
 import { User } from '../models/User.js';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 // Router principale che compone le sottorotte del dominio
 const router = Router();
 // Restituisce le informazioni dell'utente autenticato
@@ -22,7 +23,7 @@ router.get('/utenti', async (_req, res) => {
     }
     catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: ReasonPhrases.INTERNAL_SERVER_ERROR });
     }
 });
 // Monta le aree funzionali

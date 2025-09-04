@@ -52,7 +52,7 @@ export async function reserve(req, res) {
     await consumer.update({ credit: newCreditAfterCharge });
     // Crea prenotazione in stato "reserved"
     const resv = await Reservation.create({ consumerId, producerId, date: dateStr, hour, kwh, unitPrice, status: 'reserved' });
-    return res.status(201).json({ id: resv.id });
+    return res.status(StatusCodes.CREATED).json({ id: resv.id });
 }
 // Modifica prenotazione o cancella (kwh=0)
 export async function modify(req, res) {

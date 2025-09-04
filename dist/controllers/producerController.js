@@ -116,12 +116,12 @@ export async function earnings(req, res) {
     // Convalida input
     const errors = validationResult(req);
     if (!errors.isEmpty())
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
     // Trova produttore e normalizza intervallo
     const userId = req.user.sub;
     const producer = await Producer.findOne({ where: { userId } });
     if (!producer)
-        return res.status(400).json({ error: 'Producer profile not found' });
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
     const [start, end] = String(req.query.range).split('|');
     const startStr = dayjs(start).format('YYYY-MM-DD');
     const endStr = dayjs(end).format('YYYY-MM-DD');
@@ -136,12 +136,12 @@ export async function proportionalAccept(req, res) {
     // Convalida input
     const errors = validationResult(req);
     if (!errors.isEmpty())
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
     // Trova produttore e identifica slot
     const userId = req.user.sub;
     const producer = await Producer.findOne({ where: { userId } });
     if (!producer)
-        return res.status(400).json({ error: 'Producer profile not found' });
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
     const dateStr = dayjs(req.body.date).format('YYYY-MM-DD');
     const hour = Number(req.body.hour);
     // Recupera capacità e prenotazioni per lo slot

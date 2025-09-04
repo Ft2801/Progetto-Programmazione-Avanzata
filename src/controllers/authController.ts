@@ -30,11 +30,7 @@ export async function register(req: Request, res: Response) {
 export async function login(req: Request, res: Response) {
   // qui puoi essere sicuro che email e password siano corrette
   const user = (req as any).foundUser;
-
-  // Faccio questo controllo perché il controllo della password nel middleware non funziona (non so il motivo)
-  const { password } = req.body as { password: string };
-  const ok = await bcrypt.compare(password, user.passwordHash);
-  if (!ok) return res.status(StatusCodes.UNAUTHORIZED).json({ error: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
+  if (!user) return res.status(StatusCodes.UNAUTHORIZED).json({ error: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
 
   const secret = process.env.JWT_SECRET;
   if (!secret) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Server misconfiguration: JWT secret not set' });
