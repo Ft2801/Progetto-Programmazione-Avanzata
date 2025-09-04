@@ -3,11 +3,11 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: energydb
-      POSTGRES_USER: energy
-      POSTGRES_PASSWORD: energy
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,18 +18,18 @@ services:
   api:
     build: .
     environment:
-      PORT: 3000
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: energydb
-      DB_USER: energy
-      DB_PASS: energy
-      JWT_SECRET: 3b75fbfddbe2695c4ddc7f494ac2d4dfc7b8355a5e62398dd7aab4f54acf0045
+      PORT: ${PORT}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
     command: npm run start
     restart: unless-stopped
 volumes:
