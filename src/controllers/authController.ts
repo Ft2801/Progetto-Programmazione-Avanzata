@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { StatusCodes, ReasonPhrases, getReasonPhrase } from 'http-status-codes';
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validationResult } from "express-validator";
@@ -22,7 +23,7 @@ export async function register(req: Request, res: Response) {
   const credit = role === "consumer" ? 1000 : 0;
 
   const user = await User.create({ email, passwordHash, name, role, credit });
-  return res.status(201).json({ id: user.id });
+  return res.status(StatusCodes.CREATED).json({ id: user.id });
 }
 
 // Login utente
@@ -33,10 +34,10 @@ export async function login(req: Request, res: Response) {
   // Faccio questo controllo perché il controllo della password nel middleware non funziona (non so il motivo)
   const { password } = req.body as { password: string };
   const ok = await bcrypt.compare(password, user.passwordHash);
-  if (!ok) return res.status(401).json({ error: 'Invalid credentials 1' });
+  if (!ok) return res.status(StatusCodes.UNAUTHORIZED).json({ error: getReasonPhrase(StatusCodes.UNAUTHORIZED) });
 
   const secret = process.env.JWT_SECRET;
-  if (!secret) return res.status(500).json({ error: "Server misconfiguration: JWT secret not set" });
+  if (!secret) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Server misconfiguration: JWT secret not set' });
 
   const token = jwt.sign({ sub: user.id, role: user.role }, secret, { expiresIn: "2d" });
   return res.json({ token });

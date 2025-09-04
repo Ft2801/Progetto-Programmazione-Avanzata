@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes';
 import { validationResult } from 'express-validator';
 import { Producer } from '../models/Producer.js';
 import { ProducerCapacity } from '../models/ProducerCapacity.js';
@@ -6,19 +7,23 @@ import dayjs from 'dayjs';
 import puppeteer from 'puppeteer';
 // Statistiche orarie per produttore; opzionalmente restituisce immagine PNG
 export async function producerStats(req, res) {
+    // Convalida input
     const errors = validationResult(req);
     if (!errors.isEmpty())
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
+    // Identifica il produttore e normalizza l'intervallo richiesto
     const userId = req.user.sub;
     const producer = await Producer.findOne({ where: { userId } });
     if (!producer)
-        return res.status(400).json({ error: 'Producer profile not found' });
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
     const [start, end] = String(req.query.range).split('|');
     const startStr = dayjs(start).format('YYYY-MM-DD');
     const endStr = dayjs(end).format('YYYY-MM-DD');
+    // Carica capacità e prenotazioni per calcolare metriche per ora
     const capacities = await ProducerCapacity.findAll({ where: { producerId: producer.id } });
     const reservations = await Reservation.findAll({ where: { producerId: producer.id, status: 'reserved' } });
     const hours = Array.from({ length: 24 }).map((_, i) => i);
+    // Per ogni ora, calcola min/max/media/deviazione standard della % venduta nelle date dell'intervallo
     const stats = hours.map((hour) => {
         const pct = [];
         for (const cap of capacities) {
@@ -41,6 +46,7 @@ export async function producerStats(req, res) {
     const format = req.query.format || 'json';
     if (format === 'image') {
         try {
+            // Genera grafico via headless browser e Plotly, restituendo PNG
             const browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
             const page = await browser.newPage();
             const html = `<!doctype html><html><head><meta charset=\"utf-8\" />
@@ -66,10 +72,12 @@ export async function producerStats(req, res) {
             return res.send(buffer);
         }
         catch (e) {
+            // Ambiente senza supporto a headless browser: fallback ai dati JSON
             return res.json({ note: 'Impossibile generare immagine in questo ambiente; restituiti dati JSON', stats });
         }
     }
     if (format === 'html') {
+        // Rende una pagina HTML con il grafico Plotly
         const html = `<!doctype html><html><head><meta charset="utf-8" />
       <title>Producer Stats</title>
       <meta name="viewport" content="width=device-width, initial-scale=1" />

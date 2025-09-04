@@ -7,6 +7,7 @@ import statsRoutes from './stats.js';
 
 import { Router, Request, Response } from 'express';
 import { User } from '../models/User.js';
+import { StatusCodes, ReasonPhrases } from 'http-status-codes';
 
 // Router principale che compone le sottorotte del dominio
 const router = Router();
@@ -25,7 +26,7 @@ router.get('/utenti', async (_req: Request, res: Response) => {
     res.json(users);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: ReasonPhrases.INTERNAL_SERVER_ERROR });
   }
 });
 

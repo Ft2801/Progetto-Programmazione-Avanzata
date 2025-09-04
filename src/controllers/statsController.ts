@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
 import { validationResult } from 'express-validator';
 import { Producer } from '../models/Producer.js';
 import { ProducerCapacity } from '../models/ProducerCapacity.js';
@@ -10,11 +11,11 @@ import puppeteer from 'puppeteer';
 export async function producerStats(req: Request, res: Response) {
   // Convalida input
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Identifica il produttore e normalizza l'intervallo richiesto
   const userId = req.user!.sub;
   const producer = await Producer.findOne({ where: { userId } });
-  if (!producer) return res.status(400).json({ error: 'Producer profile not found' });
+  if (!producer) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
   const [start, end] = String(req.query.range).split('|');
   const startStr = dayjs(start).format('YYYY-MM-DD');
   const endStr = dayjs(end).format('YYYY-MM-DD');

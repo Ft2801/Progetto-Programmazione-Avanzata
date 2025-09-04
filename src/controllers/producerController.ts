@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
 import { validationResult } from 'express-validator';
 import { Producer } from '../models/Producer.js';
 import { ProducerCapacity } from '../models/ProducerCapacity.js';
@@ -10,7 +11,7 @@ import { User } from '../models/User.js';
 export async function upsertProfile(req: Request, res: Response) {
   // Convalida input
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Identifica l'utente autenticato
   const userId = req.user!.sub;
   // Dati del profilo produttore
@@ -36,18 +37,18 @@ export async function upsertProfile(req: Request, res: Response) {
 export async function upsertCapacities(req: Request, res: Response) {
   // Convalida input
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Trova profilo del produttore
   const userId = req.user!.sub;
   const producer = await Producer.findOne({ where: { userId } });
-  if (!producer) return res.status(400).json({ error: 'Producer profile not found' });
+  if (!producer) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
   // Normalizza data e iterazione sugli slot richiesti
   const dateStr = dayjs(req.body.date).format('YYYY-MM-DD');
   const slots = req.body.slots as Array<{ hour: number; maxCapacityKwh: number; pricePerKwh?: number }>;
   // Valida che maxCapacityKwh non superi il limite per ora del produttore
   for (const s of slots) {
     if (s.maxCapacityKwh > Number(producer.defaultMaxPerHourKwh)) {
-      return res.status(400).json({ error: `maxCapacityKwh exceeds producer defaultMaxPerHourKwh (${producer.defaultMaxPerHourKwh})` });
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: `maxCapacityKwh exceeds producer defaultMaxPerHourKwh (${producer.defaultMaxPerHourKwh})` });
     }
   }
   const results: number[] = [];
@@ -67,11 +68,11 @@ export async function upsertCapacities(req: Request, res: Response) {
 export async function occupancy(req: Request, res: Response) {
   // Convalida input
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Trova produttore e normalizza input
   const userId = req.user!.sub;
   const producer = await Producer.findOne({ where: { userId } });
-  if (!producer) return res.status(400).json({ error: 'Producer profile not found' });
+  if (!producer) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
   const dateStr = dayjs(req.query.date as string).format('YYYY-MM-DD');
   const fromHour = req.query.fromHour ? Number(req.query.fromHour) : 0;
   const toHour = req.query.toHour ? Number(req.query.toHour) : 23;
@@ -94,11 +95,11 @@ export async function occupancy(req: Request, res: Response) {
 export async function updatePrices(req: Request, res: Response) {
   // Convalida input
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Trova profilo del produttore
   const userId = req.user!.sub;
   const producer = await Producer.findOne({ where: { userId } });
-  if (!producer) return res.status(400).json({ error: 'Producer profile not found' });
+  if (!producer) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
   const dateStr = dayjs(req.body.date).format('YYYY-MM-DD');
   const slots = req.body.slots as Array<{ hour: number; pricePerKwh: number }>;
   const updated: number[] = [];
@@ -118,11 +119,11 @@ export async function updatePrices(req: Request, res: Response) {
 export async function earnings(req: Request, res: Response) {
   // Convalida input
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Trova produttore e normalizza intervallo
   const userId = req.user!.sub;
   const producer = await Producer.findOne({ where: { userId } });
-  if (!producer) return res.status(400).json({ error: 'Producer profile not found' });
+  if (!producer) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
   const [start, end] = String(req.query.range).split('|');
   const startStr = dayjs(start).format('YYYY-MM-DD');
   const endStr = dayjs(end).format('YYYY-MM-DD');
@@ -137,16 +138,16 @@ export async function earnings(req: Request, res: Response) {
 export async function proportionalAccept(req: Request, res: Response) {
   // Convalida input
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) return res.status(StatusCodes.BAD_REQUEST).json({ errors: errors.array() });
   // Trova produttore e identifica slot
   const userId = req.user!.sub;
   const producer = await Producer.findOne({ where: { userId } });
-  if (!producer) return res.status(400).json({ error: 'Producer profile not found' });
+  if (!producer) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Producer profile not found' });
   const dateStr = dayjs(req.body.date).format('YYYY-MM-DD');
   const hour = Number(req.body.hour);
   // Recupera capacità e prenotazioni per lo slot
   const cap = await ProducerCapacity.findOne({ where: { producerId: producer.id, date: dateStr, hour } });
-  if (!cap) return res.status(400).json({ error: 'No capacity for slot' });
+  if (!cap) return res.status(StatusCodes.BAD_REQUEST).json({ error: 'No capacity for slot' });
   const reservations = await Reservation.findAll({ where: { producerId: producer.id, date: dateStr, hour, status: 'reserved' } });
   // Se la richiesta totale supera la capacità, ridistribuisce proporzionalmente e rimborsa
   const totalRequested = reservations.reduce((s, r) => s + Number(r.kwh), 0);
