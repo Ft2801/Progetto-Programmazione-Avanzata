@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { body, query } from 'express-validator';
 import { authenticate, requireRole } from '../middleware/auth.js';
 import * as consumerController from '../controllers/consumerController.js';
 import { 

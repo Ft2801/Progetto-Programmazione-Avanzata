@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
-import { validationResult } from 'express-validator';
 import { Producer } from '../models/Producer.js';
 import { ProducerCapacity } from '../models/ProducerCapacity.js';
 import { Reservation } from '../models/Reservation.js';

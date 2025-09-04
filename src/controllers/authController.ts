@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import { StatusCodes, ReasonPhrases, getReasonPhrase } from 'http-status-codes';
+import { StatusCodes, getReasonPhrase } from 'http-status-codes';
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { validationResult } from "express-validator";
 import { User } from "../models/User.js";
 
 // Registrazione utente

@@ -1,4 +1,4 @@
-import { DataTypes, InferAttributes, InferCreationAttributes, Model, Optional } from 'sequelize';
+import { DataTypes, InferAttributes, Model, Optional } from 'sequelize';
 import { sequelize } from '../shared/db.js';
 import { Producer } from './Producer.js';
 
