@@ -105,6 +105,8 @@ _Sequence diagram per la generazione delle statistiche (dati, render HTML/PNG)._
   - Factory Method tramite `findOrCreate` per capacità per slot
   - Strategy potenziale per policy di accettazione richieste (attuale: proporzionale)
   - Repository semplificato via Models Sequelize
+  - HttpStatusCodes che favoriscono risposte coerenti da controller e middleware.
+  - La connessione Sequelize è esposta come singleton e importata dove serve.
 
 ## Note Plotly
 L’endpoint immagine usa Puppeteer per renderizzare Plotly in headless Chrome e restituisce PNG.
