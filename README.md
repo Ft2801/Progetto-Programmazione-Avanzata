@@ -79,6 +79,26 @@ Tutte le rotte (tranne `/api/auth/*` e `/health`) richiedono JWT nel header `Aut
 - I controller incapsulano la logica di business e interagiscono con i modelli.
 - I modelli rappresentano lo schema e le relazioni dei dati (Postgres via Sequelize).
 
+## Diagrammi UML
+
+Di seguito sono riportati i principali diagrammi UML che illustrano i casi d'uso e le sequence principali del sistema.
+
+### Use Case
+![Casi d'Uso](docs/Casi_Uso.png)
+_Diagramma dei casi d'uso principali: attori e funzionalità._
+
+### Registrazione (Sequence)
+![Registrazione](docs/Registrazione.png)
+_Sequence diagram per la registrazione di un utente (validazione, controllo esistenza, creazione)._ 
+
+### Prenotazione Energia (Sequence)
+![Prenotazione](docs/Prenotazione.png)
+_Sequence diagram che mostra il flusso di prenotazione: controllo capacità, addebito credito, creazione prenotazione._
+
+### Statistiche Produttore (Sequence)
+![Statistiche](docs/Statistiche.png)
+_Sequence diagram per la generazione delle statistiche (dati, render HTML/PNG)._ 
+
 ## Design e Pattern
 - Middleware: `auth` (JWT + RBAC), `error` (HttpError, handler), validazione (express-validator)
 - Pattern utilizzati:
