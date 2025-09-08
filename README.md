@@ -80,6 +80,11 @@ Tutte le rotte (tranne `/api/auth/*` e `/health`) richiedono JWT nel header `Aut
     - `consumerMiddleware`, (middleware che gestisce la validazione dei dati relativi alla sezione dei consumatori),
     - `producerMiddleware`, (middleware che gestisce la validazione dei dati relativi alla sezione dei produttori),
     - `statsMiddleware`, (middleware che gestisce la validazione dei dati relativi alla sezione delle statistiche).
+  - `src/rules/`: ognuno dei file contenuti nella cartella viene richiamato nel middleware rispettivo
+    - `authRules`, (regole per la validazione dei campi relativi all'autenticazione),
+    - `consumerRules`, (regole per la validazione dei campi relativi alla sezione dei consumatori),
+    - `producerRules`, (regole per la validazione dei campi relativi alla sezione dei produttori),
+    - `statsRules`, (regole per la validazione dei campi relativi alla sezione delle statistiche).
 
 ### Linee guida
 - Le rotte devono limitarsi a: definire path/metodo, validazioni (express-validator), autenticazione/autorizzazione, e chiamare il relativo controller.
