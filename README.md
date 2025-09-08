@@ -72,7 +72,14 @@ Tutte le rotte (tranne `/api/auth/*` e `/health`) richiedono JWT nel header `Aut
     - `producerController.ts` (upsertProfile, upsertCapacities, occupancy, updatePrices, earnings, proportionalAccept)
     - `statsController.ts` (producerStats)
   - `src/models/`: modelli Sequelize e associazioni (User, Producer, ProducerCapacity, Reservation)
-  - `src/middleware/`: `auth` (JWT + RBAC), `error` (HttpError, handler globale)
+  - `src/middleware/`: 
+    - `auth` (JWT + RBAC), 
+    - `error` (HttpError, handler globale),
+    - `validate` (validazione generica),
+    - `authMiddleware`, (middleware che gestisce la validazione dei dati relativi all'autenticazione),
+    - `consumerMiddleware`, (middleware che gestisce la validazione dei dati relativi alla sezione dei consumatori),
+    - `producerMiddleware`, (middleware che gestisce la validazione dei dati relativi alla sezione dei produttori),
+    - `statsMiddleware`, (middleware che gestisce la validazione dei dati relativi alla sezione delle statistiche).
 
 ### Linee guida
 - Le rotte devono limitarsi a: definire path/metodo, validazioni (express-validator), autenticazione/autorizzazione, e chiamare il relativo controller.
@@ -100,13 +107,12 @@ _Sequence diagram che mostra il flusso di prenotazione: controllo capacità, add
 _Sequence diagram per la generazione delle statistiche (dati, render HTML/PNG)._ 
 
 ## Design e Pattern
-- Middleware: `auth` (JWT + RBAC), `error` (HttpError, handler), validazione (express-validator)
+- Middleware: `auth` (JWT + RBAC), `error` (HttpError, handler), `validator` (express-validator)
 - Pattern utilizzati:
   - Factory Method tramite `findOrCreate` per capacità per slot
   - Strategy potenziale per policy di accettazione richieste (attuale: proporzionale)
   - Repository semplificato via Models Sequelize
-  - HttpStatusCodes che favoriscono risposte coerenti da controller e middleware.
-  - La connessione Sequelize è esposta come singleton e importata dove serve.
+  - Singleton tramite la connessione Sequelize, esposta e importata dove serve
 
 ## Note Plotly
 L’endpoint immagine usa Puppeteer per renderizzare Plotly in headless Chrome e restituisce PNG.
