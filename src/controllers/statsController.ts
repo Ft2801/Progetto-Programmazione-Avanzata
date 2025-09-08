@@ -7,7 +7,14 @@ import { Reservation } from '../models/Reservation.js';
 import dayjs from 'dayjs';
 import puppeteer from 'puppeteer';
 
-// Statistiche orarie per produttore; opzionalmente restituisce immagine PNG
+/**
+ * Genera statistiche orarie per un produttore su un intervallo di date.
+ *
+ * Calcola min/max/media/deviazione standard della percentuale venduta per ora
+ * attraverso le date dell'intervallo.
+ * Supporta `format=json|html|image` — il formato image rende grafici Plotly via Puppeteer (fallback a JSON se non disponibile).
+ * Input: query.range = 'YYYY-MM-DD|YYYY-MM-DD', formato opzionale.
+ */
 export async function producerStats(req: Request, res: Response) {
   // Convalida input
   const errors = validationResult(req);

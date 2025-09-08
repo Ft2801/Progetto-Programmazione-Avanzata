@@ -3,7 +3,10 @@ import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 
-// Regole di validazione per la registrazione
+/*
+ * Regole di validazione per le rotte di autenticazione (register / login).
+ * I validator sono utilizzati come middleware nelle rotte per garantire input coerenti.
+ */
 export const registerRules: ValidationChain[] = [
   body("email")
     .exists().withMessage(ReasonPhrases.BAD_REQUEST).bail()
@@ -28,7 +31,8 @@ export const registerRules: ValidationChain[] = [
     .isIn(["producer", "consumer"]).withMessage(ReasonPhrases.BAD_REQUEST)
 ];
 
-// Regole di validazione per il login
+//Login: valida email e password, e popola `req.foundUser` per il controller.
+
 export const loginRules: ValidationChain[] = [
   body("email")
     .exists().withMessage(ReasonPhrases.UNAUTHORIZED).bail()

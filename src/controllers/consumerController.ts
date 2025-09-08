@@ -7,7 +7,19 @@ import { Reservation } from '../models/Reservation.js';
 import dayjs from 'dayjs';
 import { Op } from 'sequelize';
 
-// Prenota uno slot orario per il giorno successivo
+/*
+ * Prenota uno slot orario per il giorno successivo.
+ *
+ * Responsabilità:
+ * - Validare gli input e imporre il cutoff di 24h.
+ * - Verificare il produttore e la capacità dello slot.
+ * - Assicurare che un consumer prenoti al massimo un produttore per ora.
+ * - Addebitare il credito del consumer e creare una Reservation in stato `reserved`.
+ *
+ * Input: req.body { producerId, date, hour, kwh }, utente autenticato in `req.user.sub`.
+ * Successo: 201 { id: reservationId }.
+ * Modalità di errore: cutoff superato, produttore/capacità mancanti, capacità superata, credito insufficiente.
+ */
 export async function reserve(req: Request, res: Response) {
   // Identità del consumer dall'auth middleware
   const consumerId = req.user!.sub;
@@ -47,6 +59,17 @@ export async function reserve(req: Request, res: Response) {
 
 // Modifica prenotazione o cancella (kwh=0)
 export async function modify(req: Request, res: Response) {
+/*
+ * Modifica o annulla una prenotazione esistente.
+ *
+ * Comportamento:
+ * - Se `kwh === 0` -> annulla (rimborso possibile se >24h prima dello slot).
+ * - Altrimenti valida il kwh minimo, verifica la capacità residua, applica addebiti/rimborsi e aggiorna la prenotazione.
+ *
+ * Input: req.body { reservationId, kwh }, utente autenticato in `req.user.sub`.
+ * Successo: JSON della prenotazione aggiornata.
+ * Errori: prenotazione non trovata/ownership, capacità superata, kwh non valido.
+ */
   // Recupera prenotazione e verifica proprietà del consumer
   const consumerId = req.user!.sub;
   const reservation = await Reservation.findByPk(Number(req.body.reservationId));
@@ -88,6 +111,12 @@ export async function modify(req: Request, res: Response) {
 
 // Elenco acquisti con filtri opzionali
 export async function purchases(req: Request, res: Response) {
+/*
+ * Elenca gli acquisti (prenotazioni) per il consumer autenticato.
+ *
+ * Supporta filtri opzionali via query params: `producerId`, `energyType`, `range` (start|end).
+ * Restituisce le prenotazioni con i dati del produttore inclusi per permettere filtri su `energyType`.
+ */
   // Identità del consumer
   const consumerId = req.user!.sub;
   // Costruisce dinamicamente i filtri
@@ -108,6 +137,13 @@ export async function purchases(req: Request, res: Response) {
 
 // Calcolo dell'impronta di carbonio in un intervallo
 export async function carbon(req: Request, res: Response) {
+/*
+ * Calcola l'impronta di carbonio (grammi CO2) delle prenotazioni del consumer
+ * all'interno dell'intervallo di date richiesto.
+ *
+ * Input: query.range = 'YYYY-MM-DD|YYYY-MM-DD'
+ * Restituisce: { gramsCO2: number }
+ */
   // Intervallo temporale e normalizzazione date
   const consumerId = req.user!.sub;
   const [start, end] = String(req.query.range).split('|');
