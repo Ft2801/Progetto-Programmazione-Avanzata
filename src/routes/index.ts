@@ -1,4 +1,3 @@
-//import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import authRoutes from './auth.js';
 import producerRoutes from './producer.js';

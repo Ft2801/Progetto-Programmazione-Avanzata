@@ -36,7 +36,16 @@ export async function upsertProfile(req: Request, res: Response) {
   return res.json({ id: producer.id });
 }
 
-// Imposta/aggiorna capacità per slot orari
+/*
+ * Crea o aggiorna le capacità orarie di un produttore per una data specifica.
+ *
+ * Responsabilità:
+ * - Verificare l'esistenza del profilo produttore e i limiti per slot.
+ * - Per ogni slot fornito, trovare o creare un `ProducerCapacity` e aggiornare i valori.
+ *
+ * Input: req.body { date, slots: [{ hour, maxCapacityKwh, pricePerKwh? }] }
+ * Output: { capacities: [ids] }
+ */
 export async function upsertCapacities(req: Request, res: Response) {
   // Trova profilo del produttore
   const userId = req.user!.sub;
@@ -67,7 +76,12 @@ export async function upsertCapacities(req: Request, res: Response) {
   return res.json({ capacities: results });
 }
 
-// Occupazione per un intervallo di ore in una data
+/*
+ * Restituisce il riepilogo di occupazione per ora per una data (o intervallo specificato).
+ *
+ * Per ogni ora riporta capacità, kWh prenotati e percentuale di occupazione.
+ * Input via query: date, fromHour, toHour.
+ */
 export async function occupancy(req: Request, res: Response) {
   // Trova produttore e normalizza input
   const userId = req.user!.sub;
@@ -134,7 +148,13 @@ export async function earnings(req: Request, res: Response) {
   return res.json({ total: Math.round(total * 10000) / 10000 });
 }
 
-// Accettazione proporzionale e rimborsi
+/*
+ * Applica l'accettazione proporzionale per uno slot congestionato.
+ *
+ * Quando la richiesta totale supera la capacità, riduce proporzionalmente ogni prenotazione
+ * e emette rimborsi per la quantità ridotta.
+ * Input: req.body { date, hour }.
+ */
 export async function proportionalAccept(req: Request, res: Response) {
   const userId = req.user!.sub;
   const producer = await Producer.findOne({ where: { userId } });

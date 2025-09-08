@@ -6,10 +6,6 @@ import { User } from "../models/User.js";
 
 // Registrazione utente
 export async function register(req: Request, res: Response) {
-  // Tolta perché le validazioni vengono fatte nel middleware e utilizzate nelle rotte
-  /*const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });*/
-  // Se arriva qui, vuol dire che le validazioni sono passate e i dati sono puliti
 
   const { email, password, name, role } = req.body as {
     email: string;
